@@ -1,28 +1,50 @@
 import { View, Text, Image, StyleSheet, ScrollView, Button } from "react-native"
-import { useLayoutEffect } from "react";
+import { useContext, useLayoutEffect } from "react";
 
 import MealDetails from "../components/MealDetails";
 import { MEALS } from "../data/dummy-data";
 import SubTitle from "../components/MealDetail/SubTitle";
 import List from "../components/MealDetail/List";
 import IconButton from "../components/IconButton";
+import { useDispatch, useSelector } from "react-redux";
+// import { FavoriteContext } from "../store/context/favorite-context";
+import { addFavorite, removeFavorite } from "../store/redux/favorites";
+
 function MealDetailScreen({ route, navigation }) {
+    //Context
+    // const favoriteMealsCtx = useContext(FavoriteContext);
+
+    const favoriteMealsIds = useSelector((state) => state.favoriteMeals.ids);
+    const dispatch = useDispatch();
+
     const mealId = route.params.mealId;
     const selectedMeal = MEALS.find(x => x.id === mealId);
 
-    function headerButtonPresshandler() {
-        console.log('Pressed');
+    // const mealIsFavorite = favoriteMealsCtx.ids.includes(mealId);
+    const mealIsFavorite = favoriteMealsIds.includes(mealId);
+
+    function changeFavoriteStatusHandler() {
+        if (mealIsFavorite) {
+            // favoriteMealsCtx.removeFavorite(mealId);
+            dispatch(removeFavorite({ id: mealId }));
+        } else {
+            // favoriteMealsCtx.addFavorite(mealId);
+            dispatch(addFavorite({ id: mealId }));
+        }
     }
 
     useLayoutEffect(() => {
         navigation.setOptions({
             title: selectedMeal.title,
             headerRight: () => {
-                return <IconButton icon="star" color="white" onPress={headerButtonPresshandler} />
+                return <IconButton
+                    icon={mealIsFavorite ? "star" : "star-outline"}
+                    color="white"
+                    onPress={changeFavoriteStatusHandler} />
             }
         }
         )
-    }, [mealId, navigation, headerButtonPresshandler])
+    }, [mealId, navigation, changeFavoriteStatusHandler])
 
     return (
         <ScrollView style={styles.root}>
